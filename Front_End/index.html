@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+         body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        input[type="text"] {
+            width: 200px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .show {
+            margin-top: 20px;
+        }
+        .box_data {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .box_data h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .box_data h3 {
+            margin-top: 5px;
+            font-size: 16px;
+            color: #666;
+        }
+        .butn {
+            padding: 5px 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .butn:hover {
+            background-color: #218838;
+        }
+    </style>
+  </head>
+  <body>
+    <input
+      type="text"
+      name=""
+      id="nameInput"
+      placeholder="Enter Name"
+      class="input1"
+    />
+    <input
+      type="text"
+      name=""
+      id="emailInput"
+      placeholder="Enter Email"
+      class="input2"
+    />
+    <button type="submit" onclick="add()">Submit</button>
+    <div class="show"></div>
+    <script>
+      let id;
+      add_data();
+      async function add() {
+        let name = document.querySelector(".input1").value;
+        let email = document.querySelector(".input2").value;
+        if (id) {
+          (async () => {
+            let name = document.querySelector(".input1").value;
+            let email = document.querySelector(".input2").value;
+            let res = await fetch("http://localhost:3000/put", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                id: id,
+                name: name,
+                email: email,
+              }),
+            });
+            name.value = "";
+            email.value = "";
+            add_data();
+            id = undefined;
+          })();
+        } else {
+          // console.log(name,email);
+          await fetch("http://localhost:3000/post", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: name,
+              email: email,
+            }),
+          })
+            .then((res) => {
+              console.log(res);
+              return res.json();
+            })
+            .then((data) => {
+              console.log(data);
+              // Clear input fields after submitting the form
+              document.querySelector(".input1").value = "";
+              document.querySelector(".input2").value = "";
+              // Call add_data to refresh the displayed data
+              add_data();
+            });
+        }
+      }
+      async function add_data() {
+        let show = document.querySelector(".show");
+        console.log(show);
+        await fetch("http://localhost:3000/get")
+          .then((res) => res.json())
+          .then((res) => {
+            show.innerHTML = "";
+            res.forEach((element) => {
+              show.innerHTML += `
+                        <div class="box_data">
+                            <h2>Name : ${element.name}</h2>
+                            <h3>Password : <span>${element.email}</span></h3>
+                            <button type="button" onclick="edit('${element._id}','${element.name}','${element.email}')" class="butn">Edit</button>
+                            <button type="button" onclick="del('${element._id}')" class="butn">Delete</button>
+                        </div>
+                        `;
+            });
+          });
+      }
+      add_data();
+      async function del(id) {
+        (async () => {
+          fetch("http://localhost:3000/delete", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: id,
+            }),
+          });
+          await add_data();
+        })();
+      }
+
+        function edit(_id, name, email) {
+            id = _id;
+            document.querySelector(".input1").value = name;
+            document.querySelector(".input2").value = email;
+        }
+    </script>
+  </body>
+</html>
